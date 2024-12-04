@@ -1,3 +1,4 @@
+
 http://hello.localhost {
 	root * /usr/src/app/
 
@@ -11,5 +12,5 @@ http://hello.localhost {
 }
 
 http://webmail.localhost {
-		reverse_proxy mailhog:8025
+    reverse_proxy mailhog:8025
 }

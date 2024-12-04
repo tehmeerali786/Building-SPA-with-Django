@@ -6,7 +6,7 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile 
-    entrypoint: bash django-launcher.sh
+    entrypoint: bash ./django-launcher.sh
     volumes: 
       - .:/usr/src/app/
     environment:
@@ -23,41 +23,36 @@ services:
       DOMAIN_URL: http://hello.localhost
       REDIS_HOST: redis 
       REDIS_PORT: 6379
-      DEFAULT_FROM_EMAIL: no-reply@hello.localhost 
       STATIC_URL: /static/
       STATIC_ROOT: static 
       MEDIA_URL: /media/ 
+      DEFAULT_FROM_EMAIL: no-reply@hello.localhost 
       EMAIL_HOST: mailhog 
       EMAIL_USE_TLS: "False"
       EMAIL_USE_SSL: "False"
       EMAIL_PORT: 1025
       EMAIL_USER:
       EMAIL_PASSWORD:
-
     expose:
       - 8000
-
     depends_on:
       - postgresql
       - redis
 
 
   postgresql:
-
-    image: postgres 
-    environment: 
-      POSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: postgres 
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: hello_db
-
     volumes:
-      - ./postgresql_data:/var/lib/postgresql/data/
+      - ./postgres_data:/var/lib/postgresql/data/
     expose:
       - 5432
 
 
   redis:
-
     image: redis:alpine 
     expose:
       - 6379
@@ -78,8 +73,7 @@ services:
       - django 
 
 
-  mail_hog:
-
+  mailhog:
     image: mailhog/mailhog:latest 
     expose:
       - 1025
