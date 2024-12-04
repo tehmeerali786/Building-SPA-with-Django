@@ -122,18 +122,18 @@ USE_TZ = True
 
 STATIC_ROOT = os.environ.get("STATIC_ROOT")
 STATIC_URL = os.environ.get("STATIC_URL")
-MEDIA_ROOT = os.environ.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = os.environ.get("MEDIA_URL")
 
 DOMAIN = os.environ.get("DOMAIN")
-DOMAIN_URL = os.environ.get("STATIC_URL")
+DOMAIN_URL = os.environ.get("DOMAIN_URL")
 CSRF_TRUSTED_ORIGINS = [DOMAIN_URL]
 
 """EMAIL CONFIG""" 
 DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_ADDRESS")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "True"
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL") == "True"
-EMAIL_HOST = os.environg.get("EMAIL_HOST")
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
