@@ -3,11 +3,13 @@ from channels.generic.websocket import JsonWebsocketConsumer
 from django.template.loader import render_to_string 
 from .models import Message  
 from asgiref.sync import async_to_sync 
+import math
 
 
 class SocialNetworkConsumer(JsonWebsocketConsumer):
 
     room_name = 'broadcast'
+    max_messages_per_page = 5
 
     def connect(self):
         """Event when client connects"""
@@ -50,7 +52,7 @@ class SocialNetworkConsumer(JsonWebsocketConsumer):
 
             case 'list messages':
                 # Send messages to all clients 
-                self.send_list_messages()
+                self.send_list_messages(data['page'])
 
     def send_html(self, event):
         """Event: send HTML to client"""
@@ -61,17 +63,21 @@ class SocialNetworkConsumer(JsonWebsocketConsumer):
 
         self.send_json(data)
 
-    def send_list_messages(self):
+    def send_list_messages(self, page=1):
         """Send list of messages to client"""
         # Filter messages to the current page 
+        start_pager = self.max_messages_per_page * (page - 1)
+        end_pager = start_pager + self.max_messages_per_page
         messages = Message.objects.order_by('-created_at')
+        messages_page = messages[start_pager: end_pager]
 
         # Render HTML sent to the client 
+        total_pages = math.ceil(messages.count() / self.max_messages_per_page)
         async_to_sync(self.channel_layer.group_send)(
                 self.room_name, {
                     'type': 'send.html', # Run 'send_html()' method
                     'selector': '#messages__list',
-                    'html': render_to_string('components/__list-messages.html', {'messages': messages,})
+                    'html': render_to_string('components/__list-messages.html', {'messages': messages_page, 'page': page, 'total_pages': total_pages})
                 }
             )
 
