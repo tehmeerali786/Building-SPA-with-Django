@@ -54,6 +54,28 @@ class SocialNetworkConsumer(JsonWebsocketConsumer):
                 # Send messages to all clients 
                 self.send_list_messages(data['page'])
 
+            case 'delete message':
+                # Delete messages from database
+                Message.objects.get(id=data['id']).delete()
+                self.send_list_messages()
+
+            case 'open edit page':
+                self.open_edit_page(data['id'])
+
+            case 'update message':
+                # Update message in database
+                Message.objects.filter(id=data['id']).update(
+
+                        author=data['author'],
+                        text=data['text'],
+
+                    )
+                # Send messages to all clients
+                self.send_list_messages()
+
+
+
+
     def send_html(self, event):
         """Event: send HTML to client"""
         data = {
@@ -62,6 +84,19 @@ class SocialNetworkConsumer(JsonWebsocketConsumer):
         }
 
         self.send_json(data)
+
+    def open_edit_page(self, id):
+        """Send the form to edit the message"""
+        message = Message.objects.get(id=id)
+        async_to_sync(self.channel_layer.group_send)(self.room_name, 
+            {
+                'type': 'send.html',
+                'selector': f'#message--{id}',
+                'html': render_to_string('components/__edit-message.html',
+                        {'message': message}
+                    )
+            }
+            )
 
     def send_list_messages(self, page=1):
         """Send list of messages to client"""
