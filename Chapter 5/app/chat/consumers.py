@@ -1,12 +1,12 @@
 # app/chat/consumer.py
-from channels.generic.websocket import JsonWebSocketConsumer 
+from channels.generic.websocket import JsonWebsocketConsumer 
 from django.template.loader import render_to_string 
 from asgiref.sync import async_to_sync 
 from channels.auth import login, logout 
 from django.contrib.auth.models import User 
 from .models import Client, Room, Message 
 
-class ChatConsumer(JsonWebSocketConsumer):
+class ChatConsumer(JsonWebsocketConsumer):
 
     # At startup delete all clients 
     Client.objects.all().delete()
@@ -71,7 +71,7 @@ class ChatConsumer(JsonWebSocketConsumer):
                     # Gets the user to whom you are going to speak
                     user_target = User.objects.filter(username=data["groupName"]).first()
                     # Search for rooms where both users match
-                    room = Room.objects.filter(users_subscribed__in=[self.scope["user"]], is_group=False)
+                    room = Room.objects.filter(users_subscribed__in=[self.scope["user"]], is_group=False).intersection(Room.objects.filter(users_subscribed__in=[user_target], is_group=False)).first()
                     if room and user_target and room.users_subscribed.count() == 2:
                         # An existing group has been found where both target and current users are already talking.
                         # The current users subscribed 
@@ -79,7 +79,7 @@ class ChatConsumer(JsonWebSocketConsumer):
 
                     else:
                         # Looking for the room where the target user is alone.
-                        room = Room.ojbects.filter(
+                        room = Room.objects.filter(
                             users_subscribed__in=[
                                 user_target,
                             ],
@@ -120,7 +120,7 @@ class ChatConsumer(JsonWebSocketConsumer):
         messages = Message.objects.filter(room=room).order_by("created_at")
         # Render HTML and send to client 
         async_to_sync(self.channel_layer.group_send)(
-            room_name: {
+            room_name, {
                 "type": "send.html",
                 "selector": "#messages-list",
                 "html": render_to_string("components/_list_messages.html", {"messages": messages})
@@ -130,7 +130,7 @@ class ChatConsumer(JsonWebSocketConsumer):
         """Send the room name to the client"""
         room_name = self.get_name_room_active()
         room = Room.objects.get(name=room_name)
-        data {
+        data = {
             "selector": "#group-name",
             # Concadena # if it is a group for aesthetic reasons 
             "html": ("#" if room.is_group else "") + room_name,
@@ -150,7 +150,7 @@ class ChatConsumer(JsonWebSocketConsumer):
             text=text,
             )
 
-    def add_client_to_room(self, room_name=None is_group=False):
+    def add_client_to_room(self, room_name=None, is_group=False):
         """Add customer to a room within Channels and save the reference in the Room model."""
         # Get the user client 
         client = Client.objects.get(user=self.scope["user"])
@@ -174,14 +174,14 @@ class ChatConsumer(JsonWebSocketConsumer):
 
     def get_name_room_active(self):
         """Get the name of the group from login user"""
-        Room = Room.objects.filter(client_active__user_id=self.scope["user"].id).first()
+        room = Room.objects.filter(clients_active__user_id=self.scope["user"].id).first()
         return room.name
 
     def remove_client_from_current_room(self):
         """Remove client from current group"""
         client = Client.objects.get(user=self.scope["user"])
         # Get the current group 
-        rooms = Room.objects.filter(client_active__in=[client])
+        rooms = Room.objects.filter(clients_active__in=[client])
         for room in rooms:
             # Remove the client from the group 
             async_to_sync(self.channel_layer.group_discard)(room.name, self.channel_name)
