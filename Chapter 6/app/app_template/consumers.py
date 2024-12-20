@@ -1,18 +1,18 @@
 # app/app_template/consumer.py 
-from channels.generic.websockets import JsonWebsocketConsumer 
-from app.app_template.actions import actions 
+from channels.generic.websocket import JsonWebsocketConsumer 
+import app.app_template.actions as actions 
 
 
-class Example(JsonWebsocketConsumer):
+class ExampleConsumer(JsonWebsocketConsumer):
 
     def connect(self):
         """Event when client connects"""
         # Accept the connection
         self.accept()
-        # Make session task list 
-        if "task" not in self.scope["session"]:
-            self.scope["session"]["tasks"] = []
-            self.scope["session"].save()
+        # # Make session task list 
+        # if "task" not in self.scope["session"]:
+        #     self.scope["session"]["tasks"] = []
+        #     self.scope["session"].save()
 
 
     def disconnect(self, close_code):
@@ -34,16 +34,16 @@ class Example(JsonWebsocketConsumer):
         match data_received["action"]:
             case "Change page":
                 actions.send_page(self, data["page"])
-            case "Signup":
-                actions.action_signup(self, data)
-            case "Login":
-                actions.action_login(self, data)
-            case "Logout":
-                actions.action_logout(self)
-            case "Add lap":
-                actions.add_lap(self)
-            case "Add task":
-                actions.add_task(self, data)
+            # case "Signup":
+            #     actions.action_signup(self, data)
+            # case "Login":
+            #     actions.action_login(self, data)
+            # case "Logout":
+            #     actions.action_logout(self)
+            # case "Add lap":
+            #     actions.add_lap(self)
+            # case "Add task":
+            #     actions.add_task(self, data)
 
 
     def send_html(self, event):
