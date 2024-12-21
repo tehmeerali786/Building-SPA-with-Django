@@ -34,6 +34,8 @@ class ExampleConsumer(JsonWebsocketConsumer):
         match data_received["action"]:
             case "Change page":
                 actions.send_page(self, data["page"])
+            case "Add lap":
+                actions.add_lap(self)
             # case "Signup":
             #     actions.action_signup(self, data)
             # case "Login":

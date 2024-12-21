@@ -51,6 +51,38 @@ function setEventsNavigation(webSocket){
     });
 }
 
+/**
+ * Send new lap
+ * @param {Event} event
+ * @return {void}
+ **/
+
+function addLap(event) {
+    sendData({
+        action: 'Add lap',
+        data: {}
+    }, myWebSocket);
+}
+
+/**
+ * Update events in every page
+ * return {void}
+ * 
+ **/
+
+function updateEvents() {
+    // Nav
+    setEventsNavigation(myWebSocket);
+    // Add lap
+    const addLapButton = document.querySelector('#add-lap');
+    if (addLapButton !== null) {
+        addLapButton.removeEventListener('click', addLap, false);
+        addLapButton.addEventListener('click', addLap, false);
+    }
+}
+
+
+
 
 // Event when a new message is received by WebSockets 
 
@@ -59,7 +91,13 @@ myWebSocket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
     // Renders the HTML received from the Consumer 
     const selector = document.querySelector(data.selector);
-    selector.innerHTML = data.html;
+    // If append is received, it will be appended. Otherwise, the entire DOM will be replaced.
+    if (data.append) {
+        selector.innerHTML += data.html;
+    } else {
+        selector.innerHTML = data.html;
+    }
+    
 
     // Update URL
     history.pushState({}, '', data.url) // New Line
