@@ -39,15 +39,15 @@ def send_page(self, page):
         "url": reverse(page),
         })
 
-def add_lape(self):
+def add_lap(self):
     """Add lap to Home Page """
     # Send current time to the client
     self.send_html(
-        "selector": "#laps",
+        {"selector": "#laps",
         "html": render_to_string("components/_lap.html", {"time": datetime.now()}),
         "append": True
 
-        )
+        })
 
 # def action_signup(self, data):
 #     """Sing up user"""
