@@ -13,3 +13,10 @@
     </p>
     <ul id="laps"></ul>
 </section>
+<section>
+    <h2>TODO</h2>
+    <input type="text" id="task">
+    <button id="add-task"> Add Task</button>
+    <ul id="todo">{% include "components/_tasks.html" with tasks=tasks %}</ul>
+    
+</section>

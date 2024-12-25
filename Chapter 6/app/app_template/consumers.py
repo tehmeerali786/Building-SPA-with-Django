@@ -9,10 +9,10 @@ class ExampleConsumer(JsonWebsocketConsumer):
         """Event when client connects"""
         # Accept the connection
         self.accept()
-        # # Make session task list 
-        # if "task" not in self.scope["session"]:
-        #     self.scope["session"]["tasks"] = []
-        #     self.scope["session"].save()
+        # Make session task list
+        if "tasks" not in self.scope["session"]:
+            self.scope["session"]["tasks"] = []
+            self.scope["session"].save()
 
 
     def disconnect(self, close_code):
@@ -36,8 +36,15 @@ class ExampleConsumer(JsonWebsocketConsumer):
                 actions.send_page(self, data["page"])
             case "Add lap":
                 actions.add_lap(self)
-            # case "Signup":
-            #     actions.action_signup(self, data)
+            case "Add task":
+                actions.add_task(self, data)
+            case "Signup":
+                actions.action_signup(self, data)
+            case "Login":
+                actions.action_login(self, data)
+            case "Logout":
+                actions.action_logout(self)
+
             # case "Login":
             #     actions.action_login(self, data)
             # case "Logout":

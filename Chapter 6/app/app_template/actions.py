@@ -2,9 +2,9 @@ from .forms import LoginForm, SignupForm
 from asgiref.sync import async_to_sync 
 from django.template.loader import render_to_string 
 from django.urls import reverse 
-# from channels.auth import login, logout 
-# from django.contrib.auth.models import User 
-# from django.contrib.auth import authentication 
+from channels.auth import login, logout 
+from django.contrib.auth.models import User 
+from django.contrib.auth import authenticate
 from datetime import datetime 
 
 def send_page(self, page):
@@ -14,16 +14,15 @@ def send_page(self, page):
     context = {}
     match page:
         case "home":
-            context = {}
-        #     context = {"tasks": self.scope["session"]["tasks"] if "tasks" in self.scope["session"] else []}
+            context = {"tasks": self.scope["session"]["tasks"] if "tasks" in self.scope["session"] else []}
         case "login":
             context = {"form": LoginForm()}
         case "signup":
             context = {"form": SignupForm()}
 
     # Add user to context if logged in 
-    # if "user" in self.scope:
-    #     context.update({"user": self.scope["user"]})
+    if "user" in self.scope:
+        context.update({"user": self.scope["user"]})
     context.update({"active_nav": page})
 
     # Render HTML nav and send to client 
@@ -48,6 +47,63 @@ def add_lap(self):
         "append": True
 
         })
+
+def add_task(self, data):
+    """Add task todo section"""
+    # Update task list
+    self.send_html({
+        "selector": "#todo",
+        "html": render_to_string("components/_task-item.html", {"task": data["task"]}),
+        "append": True 
+        })
+    # Add task to list
+    self.scope["session"]["tasks"].append(data["task"])
+    self.scope["session"].save()
+
+def action_signup(self, data):
+    """Sign up user"""
+    form = SignupForm(data):
+    user_exist = User.objects.filter(email=data["email"]).exists()
+    if form.is_valid() and data["password"] == data["password_confirm"] and not user_exists:
+        # Create user
+        user = User.objects.create_user(data["username"], data["email"], data["password"])
+        user.is_active = True
+        user.save()
+        # Login user
+        send_page(self, "login")
+
+    else:
+    # Send form errors
+    self.send_html({
+        "selector": "#main",
+        "html": render_to_string("page/signup.html", {"form": form, "user_exist": user_exist, "passwords_do_not_match": data["password"] != data["password_confirm"]}),
+        "append": False,
+        "url": reverse("signup")
+        }) 
+
+def action_login(self, data):
+    """Log in user"""
+    form = LoginForm(data)
+    user = authenticate(username=data["email"], password=data["password"])
+    if form.is_valid() and user:
+        async_to_sync(login)(self.scope, user)
+        self.scope["session"].save()
+        send_page(self, "profile")
+    else:
+        self.send_html({
+            "selector": "#main",
+            "html": render_to_string("pages/login.hrml", {"form": form, "user_does_not_exist": user is None})
+            "append": False,
+            "url": reverse("login")
+
+            })
+
+def action_logout(self, data):
+    """Logout user"""
+    async_to_sync(logout)(self.scope)
+    self.scope['session'].save()
+    send_page(self, "login")
+
 
 # def action_signup(self, data):
 #     """Sing up user"""
