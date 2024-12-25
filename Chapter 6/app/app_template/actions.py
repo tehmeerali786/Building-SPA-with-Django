@@ -62,9 +62,9 @@ def add_task(self, data):
 
 def action_signup(self, data):
     """Sign up user"""
-    form = SignupForm(data):
+    form = SignupForm(data)
     user_exist = User.objects.filter(email=data["email"]).exists()
-    if form.is_valid() and data["password"] == data["password_confirm"] and not user_exists:
+    if form.is_valid() and data["password"] == data["password_confirm"] and not user_exist:
         # Create user
         user = User.objects.create_user(data["username"], data["email"], data["password"])
         user.is_active = True
@@ -73,13 +73,13 @@ def action_signup(self, data):
         send_page(self, "login")
 
     else:
-    # Send form errors
-    self.send_html({
-        "selector": "#main",
-        "html": render_to_string("page/signup.html", {"form": form, "user_exist": user_exist, "passwords_do_not_match": data["password"] != data["password_confirm"]}),
-        "append": False,
-        "url": reverse("signup")
-        }) 
+        # Send form errors
+        self.send_html({
+            "selector": "#main",
+            "html": render_to_string("page/signup.html", {"form": form, "user_exist": user_exist, "passwords_do_not_match": data["password"] != data["password_confirm"]}),
+            "append": False,
+            "url": reverse("signup")
+            }) 
 
 def action_login(self, data):
     """Log in user"""
@@ -92,13 +92,13 @@ def action_login(self, data):
     else:
         self.send_html({
             "selector": "#main",
-            "html": render_to_string("pages/login.hrml", {"form": form, "user_does_not_exist": user is None})
+            "html": render_to_string("pages/login.hrml", {"form": form, "user_does_not_exist": user is None}),
             "append": False,
             "url": reverse("login")
 
             })
 
-def action_logout(self, data):
+def action_logout(self):
     """Logout user"""
     async_to_sync(logout)(self.scope)
     self.scope['session'].save()
