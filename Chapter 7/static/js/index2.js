@@ -106,6 +106,23 @@ function addNextPaginator(event) {
 }
 
 /**
+ * Event to request a search
+ * @param event
+ * 
+ **/
+function search(event) {
+	event.preventDefault();
+	const search = event.target.querySelector("#search").value;
+	sendData({
+		action: "Search",
+		data: {
+			search: search
+		}
+
+	}, myWebSocket);
+}
+
+/**
  * Update events in every page
  * return {void}
  * 

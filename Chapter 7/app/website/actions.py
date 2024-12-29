@@ -81,3 +81,50 @@ def add_next_posts(self, data={}):
 			}
 		)
 
+
+def search(self, data):
+	"""Search for posts"""
+
+	# Prepare context data for page
+	context = {
+		"posts": Post.objects.filter(title__icontains=data["search"])[:POST_PER_PAGE]
+		
+
+	}
+
+	# Render HTML page and send to client 
+	self.send_html(
+			{
+				"selector": "#all-posts",
+				"html": render_to_string("components/all_posts/list.html", context),
+			}
+		)
+
+
+def add_comment(self, data):
+	"""Add a new comment in database"""
+	# Add post 
+	data_with_post = data.copy()
+	post = Post.objects.get(id=data["post_id"])
+	data_with_post["post"] = post 
+	# Set initial values by Comment form
+	form = CommentForm(data_with_post)
+	# Check if form is valid 
+	if form.is_valid():
+		# save comment 
+		form.save()
+		# Render HTML with new comment to all clients 
+		async_to_sync(self.channel_layer.group_send)(
+				self.room_name,
+				{
+					"type": "send.html", # Run "send.html()" method
+					"selector": "#comments",
+					"html": render_to_string(
+							"components/_single_comment.html", {"comment": data}
+						),
+					"append": True,
+					"broadcast": True,
+					"url": reverse("single post", kwargs={"slug": post.slug}),
+
+				}
+			)
